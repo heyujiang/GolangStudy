@@ -218,13 +218,202 @@ var num03 int = 0xA
 
 
 
-### byte
+### byte 
+
+byte，占用一个字节，就是8个比特位，所以它和uint8本质上没有区别，它表示的是ACSII表中的一个字符。
+
+```go
+import "fmt"
+
+func main(){
+  var a byte = 65
+  //8进制写法：var c byte = '\101'
+  //16进制写法：var d byte = '\x41'
+  var b uint8 = 66
+  fmt.Printf("a的值：%c \nb 的值",a,b)
+}
+```
+
+在ASCII表中，由于字母A的ASCII的编号为65，字母B的ASCII编号为66，所以上面的代码也可以写成这样：
+
+```go
+import "fmt"
+
+func main(){
+  var a byte = 'A'
+  var b uint = 'B'
+  fmt.Printf("a的值：%cb的值：%c",a,b)
+}
+```
+
+它们的输出结果都是一样的：
+
+```go
+a的值：A
+b的值：B
+```
+
+
 
 ### rune
 
-### string
+rune，占用4个字节，功32位比特位，所以它和uint32本质上没有区别。它表示的是一个Unicode字符。（Unicode是一个可以表示世界范围内绝大部分字符的编码规范）。
+
+```go
+import (
+  "fmt"
+  "unsafe"
+)
+
+func main(){
+  var a byte = 'A'
+  var b rune = 'B'
+  fmt.Printf("a占用%d个字节数\nb占用%d个字节数",unsafe.Sizeof(a),unsafe.Sizeof(b))
+}
+
+//输出结果：
+//a占用1个字节数
+//b占用4个字节数
+```
+
+**由于byte类型能表示的值是有限的，只有2^8=256个。所以如果想表示中文的化，值呢个使用rune类型。**
+
+```go
+var name rune = '中'
+```
+
+**定义字符：**不管是byte还是rune，都是实用单引号。
+
+在Go 语言中，单引号表示字符，在上门的例子中，如果使用双引号，就意味着定义一个字符串，赋值时雨前面的声明会不一致，变异会报错。
+
+**byte和uint8没有区别，rune和uint32没有区别，那为什么海妖多出byte和rune类型？**
+
+​	*因为uint8和uint32，直观上让人认为这是一个数值，但是实际上，特也可以表示一个字符，所以为了消除这种直观错觉，就诞生了byte和rune这两个别名类型。*
+
+
+
+### 字符串
+
+字符串定义方法很简单：
+
+```go
+var mystr string = "helle world"
+```
+
+上面说的byte和rune都是字符类型，若多个字符放在一起，就可以组成字符串。
+
+
+
+比如`hello`，对照ASCII编码表，每个字母对应的编号是：104,101,108,108,111
+
+```go
+import (
+	"fmt"
+)
+
+func main(){
+  var mystr01 string = "hello"
+  var mystr02 []byte = [5]byte{104,101,108,108,111}
+  fmt.Printf("mystr01:%s\n",mystr01)  //hello
+  fmt.Printf("mystro2:%s",mystr02)  //hello
+}
+```
+
+mystr01和mystr02输出一样，说明string的本质，其实是一个byte数值。
+
+
+
+**hello,中国**占用几个字节？
+
+​	*Go语言中string使用utf-8进行编码的，英文字母占用一个字节，而中文占用3个字节，所以`hello,中国`的长度为5+1+（3\*2）=12个字节。*
+
+```go
+import "fmt"
+
+func main(){
+  var str string = "hello,中国"
+  fmt.Println(len(str))   //12
+}
+```
+
+
 
 ### 数组
+
+​	**数组是一个由固定长度的特定类型元素组成的序列，一个数组可以有零个或多个元素组成。**
+
+​	*因为数组的长度是固定的，所以在Go语言中很少直接使用数组。*
+
+
+
+声明数组，并给该数组里的每一个元素赋值（索引值的最小有效值和其他大多数语言一样是0）：
+
+```go
+var arr [3]int
+arr[0] = 1
+arr[1] = 2
+arr[2] = 3
+```
+
+声明数组并直接初始化数组：
+
+```go
+var arr [3]int = [3]int{1,2,3}
+
+//or 
+
+arr := [3]int{1,2,3}
+```
+
+
+
+上面定义数组时的3表示数组的元素个数，玩意想往数组中增加元素，的对应修改这个数字，为了避免这种硬编码，可以使用 `...` 让Go语言自己根据实际情况来分配空间。
+
+```go
+arrr := [...]int{1,2,3}
+```
+
+
+
+ `[3]int` 和 `[4]int` 虽然都是数组，但是它们不是相同的类型，使用fmt的%T可以查得。如果使用 `==`来比较，结果会是false。
+
+```go
+import(
+  "fmt"
+)
+func main(){
+  arr01 := [...]int{1,2,3}
+  arr02 := [...]int{1,2,3,4}
+  fmt.Printf("%d的类型是：%T",arr01,arr01)
+  fmt.Printf("%d的类型是：%T",arr02,arro2)
+}
+
+//输出结果如下：
+[1,2,3]的类型是：[3]int
+[1,2,3,4]的类型是:[4]int
+```
+
+
+
+发现每次写 `[3]int` 优点麻烦，可以为 `[3]int` 定义一个类型字面亮，也就是别名类型。
+
+
+
+使用 `type` 关键字可以定义一个类型字面量，后面只要想定义一个容器大小为3，元素类型为int的数组，都可以使用这个别名类型。
+
+```go
+func mian(){
+  type arr3 [3]int
+  
+  myarr := arr3{1,2,3}
+  fmt.Printf("%d的类型是：%T",myarr,myarr)
+}
+
+//输出：
+//[1,2,3]的类型是：main.arr3
+```
+
+
 
 ### 切片
 
